@@ -9,7 +9,7 @@ DEPLOY_DIR="${2:-/opt/ponemnogu-todo}"
 RELEASE="$(git rev-parse --short=12 HEAD)-$(date +%Y%m%d%H%M%S)"
 ARCHIVE="$(mktemp "${TMPDIR:-/tmp}/ponemnogu-release.XXXXXX.tar.gz")"
 trap 'rm -f "$ARCHIVE"' EXIT
-tar -czf "$ARCHIVE" dist infra/nginx.conf
+COPYFILE_DISABLE=1 tar --no-xattrs -czf "$ARCHIVE" dist infra/nginx.conf
 ssh -o BatchMode=yes "$DEPLOY_TARGET" "mkdir -p '$DEPLOY_DIR/releases/$RELEASE'"
 scp "$ARCHIVE" "$DEPLOY_TARGET:$DEPLOY_DIR/releases/$RELEASE/artifact.tar.gz"
 ssh -o BatchMode=yes "$DEPLOY_TARGET" bash -s -- "$DEPLOY_DIR" "$RELEASE" <<'REMOTE'
@@ -36,7 +36,7 @@ else
 fi
 HEALTHY=0
 for ATTEMPT in 1 2 3 4 5; do
-  if curl -fsS http://127.0.0.1:8092/ | grep -q 'Понемногу'; then HEALTHY=1; break; fi
+  if curl -fsS http://127.0.0.1:8092/ | grep -F 'Понемногу' >/dev/null; then HEALTHY=1; break; fi
   sleep 1
 done
 if [ "$HEALTHY" -ne 1 ]; then
