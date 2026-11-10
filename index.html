@@ -72,7 +72,17 @@
             <label class="input-label" for="task-title">Что хочешь сделать?</label>
             <input id="task-title" name="title" type="text" placeholder="Например, прочитать 10 страниц" maxlength="180" autocomplete="off" aria-describedby="task-error">
             <div class="form-options"><button type="button" id="date-trigger" class="date-trigger" aria-haspopup="dialog"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg><span id="date-label">Когда-нибудь</span><svg class="small-icon down" aria-hidden="true"><use href="#i-chevron"/></svg></button><button type="button" id="time-trigger" class="time-trigger" aria-expanded="false" aria-controls="time-fields"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg><span id="time-label">Указать время</span><span class="optional-label">необязательно</span></button></div>
-            <fieldset id="time-fields" class="time-fields" hidden><legend>Время выполнения <span>по желанию</span></legend><div class="time-inputs"><div><label for="task-start">Начало</label><input id="task-start" name="startTime" type="time" step="60" aria-describedby="time-hint time-error"></div><span class="time-separator" aria-hidden="true">—</span><div><label for="task-end">Окончание</label><input id="task-end" name="endTime" type="time" step="60" aria-describedby="time-hint time-error"></div><button id="clear-time" class="text-button" type="button">Убрать время</button></div><p id="time-hint" class="time-hint">Например, с 10:00 до 12:00. Можно указать только начало или оставить оба поля пустыми.</p><p id="time-error" class="field-error" role="alert" hidden></p></fieldset>
+            <fieldset id="time-fields" class="time-fields" hidden>
+              <legend class="time-legend-title">Время выполнения</legend>
+              <p class="time-legend-note">по желанию</p>
+              <div class="time-inputs">
+                <div><label for="task-start">Начало</label><input id="task-start" name="startTime" type="time" step="60" aria-describedby="time-hint time-error"></div>
+                <div><label for="task-end">Окончание</label><input id="task-end" name="endTime" type="time" step="60" aria-describedby="time-hint time-error"></div>
+                <button id="clear-time" class="text-button" type="button">Убрать время</button>
+              </div>
+              <p id="time-hint" class="time-hint">Например, с 10:00 до 12:00. Можно указать только начало или оставить оба поля пустыми.</p>
+              <p id="time-error" class="field-error" role="alert" hidden></p>
+            </fieldset>
             <div class="form-bottom"><span class="form-hint">Один маленький шаг за раз</span><button class="primary-button" id="add-button" type="submit"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg><span>Добавить задачу</span></button></div>
             <p id="task-error" class="field-error" role="alert" hidden></p>
           </form>

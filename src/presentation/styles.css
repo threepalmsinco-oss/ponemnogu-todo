@@ -1758,15 +1758,19 @@ h1 {
 }
 
 .time-fields legend {
+  max-width:100%;
   padding:0 .375rem;
+  line-height:1.6;
   font-size:var(--text-small);
   font-weight:800;
 }
 
-.time-fields legend span {
+.time-legend-note {
+  margin:0 0 .75rem;
   color:var(--muted);
   font-size:var(--text-caption);
   font-weight:500;
+  line-height:1.6;
 }
 
 .time-inputs {
@@ -1807,10 +1811,6 @@ h1 {
 
 .time-inputs input[aria-invalid="true"] {
   border-color:var(--red);
-}
-
-.time-separator {
-  display:none;
 }
 
 #clear-time {
@@ -1911,9 +1911,7 @@ h1 {
   .date-trigger { width:auto; }
   .time-fields { padding:.75rem; }
   .time-inputs { display:grid; grid-template-columns:minmax(0,1fr); }
-  .time-separator { display:none; }
   #clear-time { grid-column:1/-1; }
-  .time-fields legend span { display:block; }
   .calendar-day { min-height:2.75rem; }
 }
 
