@@ -348,9 +348,13 @@ h1 {
 }
 
 .progress-number {
+  display:inline-flex;
+  align-items:baseline;
+  gap:.2em;
+  flex-shrink:0;
   font-weight:900;
   font-size:var(--text-progress);
-  letter-spacing:-1px;
+  letter-spacing:0;
   color:var(--primary);
   margin-left:auto;
   padding-left:8px;
