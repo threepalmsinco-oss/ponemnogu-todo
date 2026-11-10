@@ -1,4 +1,5 @@
 import { localDate, fromCalendarDate, isCalendarDate, selectTasks } from '../domain/date.js';
+import { TaskValidationError } from '../domain/task.js';
 import { Calendar } from './calendar.js';
 import { mascotSvg, getMessage } from './mascot.js';
 
@@ -34,6 +35,17 @@ export class TodoApp {
   bindEvents() {
     $('#task-form').addEventListener('submit', event => { event.preventDefault(); this.addTask(); });
     $('#task-title').addEventListener('input', () => { $('#task-error').hidden = true; $('#task-title').removeAttribute('aria-invalid'); });
+    $('#time-trigger').addEventListener('click', () => this.setTimeExpanded($('#time-fields').hidden));
+    $('#clear-time').addEventListener('click', () => {
+      this.clearTime();
+      $('#time-trigger').focus();
+    });
+    for (const field of [$('#task-start'), $('#task-end')]) {
+      field.addEventListener('input', () => {
+        this.clearTimeError();
+        this.renderTimeLabel();
+      });
+    }
     document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => this.navigate(button.dataset.view)));
     $('#clear-filter').addEventListener('click', () => this.navigate('all'));
     $('#empty-action').addEventListener('click', () => {
@@ -132,8 +144,15 @@ export class TodoApp {
 
   addTask() {
     try {
-      const added = this.service.add($('#task-title').value, this.draftDate);
+      for (const [selector, name] of [['#task-start', 'startTime'], ['#task-end', 'endTime']]) {
+        if ($(selector).validity.badInput) throw new TaskValidationError('Укажи часы и минуты целиком или убери время.', name);
+      }
+      const added = this.service.add($('#task-title').value, this.draftDate, {
+        startTime: $('#task-start').value || null,
+        endTime: $('#task-end').value || null,
+      });
       $('#task-title').value = '';
+      this.clearTime();
       $('#task-title').removeAttribute('aria-invalid');
       $('#task-error').hidden = true;
       this.sync();
@@ -142,11 +161,54 @@ export class TodoApp {
       this.showToast('Задача добавлена. Отличное начало!');
       $('#task-title').focus();
     } catch (error) {
+      if (error.field === 'startTime' || error.field === 'endTime') {
+        this.setTimeExpanded(true, false);
+        const field = error.field === 'startTime' ? $('#task-start') : $('#task-end');
+        $('#time-error').textContent = error.message;
+        $('#time-error').hidden = false;
+        field.setAttribute('aria-invalid', 'true');
+        field.focus();
+        return;
+      }
       $('#task-error').textContent = error.message;
       $('#task-error').hidden = false;
       $('#task-title').setAttribute('aria-invalid', 'true');
       $('#task-title').focus();
     }
+  }
+
+  clearTimeError() {
+    $('#time-error').hidden = true;
+    $('#task-start').removeAttribute('aria-invalid');
+    $('#task-end').removeAttribute('aria-invalid');
+  }
+
+  clearTime() {
+    $('#task-start').value = '';
+    $('#task-end').value = '';
+    this.clearTimeError();
+    this.setTimeExpanded(false, false);
+    this.renderTimeLabel();
+  }
+
+  setTimeExpanded(expanded, focus = true) {
+    // Collapsing an optional section must not hide values that will be submitted.
+    if (!expanded) {
+      $('#task-start').value = '';
+      $('#task-end').value = '';
+      this.clearTimeError();
+    }
+    $('#time-fields').hidden = !expanded;
+    $('#time-trigger').setAttribute('aria-expanded', String(expanded));
+    this.renderTimeLabel();
+    if (expanded && focus) $('#task-start').focus();
+  }
+
+  renderTimeLabel() {
+    const start = $('#task-start').value;
+    const end = $('#task-end').value;
+    $('#time-label').textContent = start ? `${start}${end ? `–${end}` : ''}` : 'Указать время';
+    $('#time-trigger').classList.toggle('has-time', !!start);
   }
 
   navigate(view, date = null) {
@@ -239,8 +301,17 @@ export class TodoApp {
       date.textContent = (task.dueDate === this.today ? 'Сегодня' : dateFormat.format(fromCalendarDate(task.dueDate))) + (overdue ? ' · просрочено' : '') + (task.completed ? ' · выполнено' : '');
       meta.classList.add(overdue ? 'due-overdue' : task.dueDate === this.today ? 'due-today' : 'due-upcoming');
       meta.innerHTML = svg('calendar'); meta.append(date);
-    } else { meta.textContent = task.completed ? 'Выполнено · без даты' : 'Без даты · когда будет удобно'; }
+    } else { meta.textContent = task.completed ? 'Выполнено · без даты' : task.startTime ? 'Без даты' : 'Без даты · когда будет удобно'; }
     content.append(meta);
+    if (task.startTime) {
+      const schedule = document.createElement('span');
+      schedule.className = 'task-time';
+      schedule.innerHTML = svg('clock');
+      const time = document.createElement('span');
+      time.textContent = task.endTime ? `${task.startTime}–${task.endTime}` : `С ${task.startTime}`;
+      schedule.append(time);
+      content.append(schedule);
+    }
     const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'icon-button task-delete'; remove.dataset.action = 'delete'; remove.dataset.id = task.id;
     remove.setAttribute('aria-label', `Удалить: ${task.title}`); remove.innerHTML = svg('trash'); remove.disabled = !this.ready;
     row.append(toggle, content, remove);

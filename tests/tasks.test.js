@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createTask } from '../src/domain/task.js';
+import { createTask, isClockTime } from '../src/domain/task.js';
 import { isCalendarDate, localDate, selectTasks } from '../src/domain/date.js';
 import { TaskService } from '../src/application/task-service.js';
 import { LocalStorageTaskRepository, STORAGE_KEY } from '../src/infrastructure/local-storage-task-repository.js';
@@ -89,7 +89,7 @@ test('failed storage writes roll back every use case in memory', () => {
 
 test('corrupted or unsupported storage is preserved and blocks mutations', () => {
   const { service, data } = setup();
-  for (const raw of ['not JSON', 'null', '{"version":2,"tasks":[]}', '{"version":1,"tasks":[{}]}']) {
+  for (const raw of ['not JSON', 'null', '{"version":3,"tasks":[]}', '{"version":1,"tasks":[{}]}']) {
     data.set(STORAGE_KEY, raw);
     assert.throws(() => service.load(), /перезаписывать/);
     assert.throws(() => service.add('Новая'), /Хранилище/);
@@ -140,4 +140,62 @@ test('user HTML remains plain task data rather than executable markup', () => {
   const title = '<img src=x onerror=alert(1)>';
   service.add(title);
   assert.equal(repository.load()[0].title, title);
+});
+
+test('an optional time range survives reload, completion and deletion undo', () => {
+  const { service, repository } = setup();
+  const task = service.add('Прочитать книгу', '2026-11-10', { startTime: '10:00', endTime: '12:00' });
+  const reloaded = new TaskService(repository);
+  assert.deepEqual(reloaded.load(), [task]);
+  reloaded.toggle(task.id);
+  const removed = reloaded.remove(task.id);
+  reloaded.restore(removed);
+  assert.deepEqual(repository.load(), [{ ...task, completed: true }]);
+});
+
+test('time is optional with or without a calendar date; start-only is supported', () => {
+  const { service } = setup();
+  const noTime = service.add('В своём темпе');
+  assert.equal(noTime.startTime, null);
+  assert.equal(noTime.endTime, null);
+  const startOnly = service.add('Разобрать почту', null, { startTime: '00:00' });
+  assert.equal(startOnly.startTime, '00:00');
+  assert.equal(startOnly.endTime, null);
+});
+
+test('invalid or reversed time intervals never alter stored tasks', () => {
+  const { service, data } = setup();
+  service.add('Существующая задача');
+  const before = data.get(STORAGE_KEY);
+  for (const times of [
+    { startTime: '9:00' }, { startTime: '24:00' }, { startTime: '10:60' },
+    { startTime: 1000 }, { endTime: '12:00' }, { startTime: '10:00', endTime: 'invalid' },
+    { startTime: '12:00', endTime: '10:00' }, { startTime: '10:00', endTime: '10:00' },
+  ]) {
+    assert.throws(() => service.add('Новое дело', null, times));
+    assert.equal(data.get(STORAGE_KEY), before);
+    assert.equal(service.list().length, 1);
+  }
+  assert.equal(isClockTime('23:59'), true);
+});
+
+test('legacy v1 tasks load without loss and migrate only on a successful write', () => {
+  const { service, data, repository } = setup();
+  const legacy = { id: 'old-1', title: 'Старая задача', completed: true, dueDate: '2026-11-10', createdAt: '2026-11-10T09:00:00.000Z' };
+  const raw = JSON.stringify({ version: 1, tasks: [legacy] });
+  data.set(STORAGE_KEY, raw);
+  assert.deepEqual(service.load(), [{ ...legacy, startTime: null, endTime: null }]);
+  assert.equal(data.get(STORAGE_KEY), raw);
+  service.add('Новая задача', '2026-11-11', { startTime: '10:00', endTime: '12:00' });
+  assert.equal(JSON.parse(data.get(STORAGE_KEY)).version, 2);
+  assert.equal(repository.load()[0].title, legacy.title);
+  assert.equal(repository.load()[0].completed, true);
+});
+
+test('tasks on the same day sort by start time, with untimed tasks afterwards', () => {
+  const { service } = setup();
+  service.add('Без времени', '2026-11-10');
+  service.add('После обеда', '2026-11-10', { startTime: '14:00' });
+  service.add('Утром', '2026-11-10', { startTime: '09:00', endTime: '10:00' });
+  assert.deepEqual(selectTasks(service.list()).map(task => task.title), ['Утром', 'После обеда', 'Без времени']);
 });

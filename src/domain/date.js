@@ -25,5 +25,6 @@ export function selectTasks(tasks, { view = 'all', date = null, today = localDat
     return true;
   }).sort((a, b) => Number(a.completed) - Number(b.completed)
     || (a.dueDate ?? '9999-12-31').localeCompare(b.dueDate ?? '9999-12-31')
+    || (a.startTime ?? '99:99').localeCompare(b.startTime ?? '99:99')
     || b.createdAt.localeCompare(a.createdAt));
 }

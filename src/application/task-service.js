@@ -30,8 +30,8 @@ export class TaskService {
     return this.list();
   }
 
-  add(title, dueDate = null) {
-    const task = createTask({ id: this.#id(), title, dueDate, createdAt: this.#now() });
+  add(title, dueDate = null, { startTime = null, endTime = null } = {}) {
+    const task = createTask({ id: this.#id(), title, dueDate, startTime, endTime, createdAt: this.#now() });
     this.#commit([...this.#tasks, task]);
     return { ...task };
   }

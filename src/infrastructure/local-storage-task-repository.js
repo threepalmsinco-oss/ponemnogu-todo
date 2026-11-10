@@ -1,4 +1,4 @@
-import { isStoredTask } from '../domain/task.js';
+import { createTask, isStoredTask } from '../domain/task.js';
 
 export const STORAGE_KEY = 'ponemnogu.tasks.v1';
 
@@ -12,17 +12,18 @@ export class LocalStorageTaskRepository {
     if (raw === null) return [];
     try {
       const data = JSON.parse(raw);
-      if (data.version !== 1 || !Array.isArray(data.tasks)
+      if (![1, 2].includes(data.version) || !Array.isArray(data.tasks)
         || !data.tasks.every(isStoredTask)
         || new Set(data.tasks.map(task => task.id)).size !== data.tasks.length) throw new Error();
-      return data.tasks.map(({ id, title, dueDate, completed, createdAt }) => ({ id, title, dueDate, completed, createdAt }));
+      // Read old records without changing storage; the next successful write uses v2.
+      return data.tasks.map(task => ({ ...createTask(task), completed: task.completed }));
     } catch {
       throw new Error('Не удалось прочитать сохранённые задачи. Исходные данные сохранены: мы не будем их перезаписывать.');
     }
   }
 
   save(tasks) {
-    try { this.storage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, tasks })); }
+    try { this.storage.setItem(STORAGE_KEY, JSON.stringify({ version: 2, tasks })); }
     catch { throw new Error('Не получилось сохранить изменение. Возможно, память браузера заполнена. Предыдущие задачи сохранены.'); }
   }
 }
