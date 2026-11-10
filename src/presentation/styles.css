@@ -1914,8 +1914,13 @@ h1 {
   .app-header .storage-status { grid-column:1; grid-row:3; justify-self:start; }
 }
 
-@media(max-width:26em) {
+@media(max-width:32em) {
   .app-header .navigation { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+
+@media(min-width:26.001em) and (max-width:32em) {
+  .app-header .nav-item { flex-direction:row; justify-content:flex-start; gap:.5rem; min-height:3.25rem; }
+  .app-header .nav-count { position:static; margin-left:auto; }
 }
 
 @media(prefers-reduced-motion:reduce) {
