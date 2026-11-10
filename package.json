@@ -1,0 +1,16 @@
+{
+  "name": "ponemnogu-todo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Уютный планировщик задач с календарём и маленьким другом",
+  "scripts": {
+    "dev": "node scripts/server.mjs",
+    "start": "node scripts/server.mjs",
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/*.test.js",
+    "check": "node scripts/check-architecture.mjs",
+    "check:public": "node scripts/check-public-files.mjs"
+  },
+  "engines": { "node": ">=22" }
+}
