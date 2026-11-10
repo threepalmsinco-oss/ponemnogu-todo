@@ -31,29 +31,21 @@
     </defs>
   </svg>
 
-  <aside class="sidebar">
+  <header class="app-header">
     <a class="brand" href="./" aria-label="Понемногу — главная">
       <img src="./public/favicon.svg" width="38" height="38" alt="">
       <span>понемногу<span class="brand-dot">.</span></span>
     </a>
-    <div class="sidebar-caption">ТВОЁ ПРОСТРАНСТВО</div>
     <nav class="navigation" aria-label="Разделы задач">
       <button class="nav-item active" data-view="all" aria-current="page"><svg class="icon"><use href="#i-grid"/></svg><span class="nav-label">Все задачи</span><span class="nav-count" data-count="all">0</span></button>
       <button class="nav-item" data-view="today"><svg class="icon"><use href="#i-sun"/></svg><span class="nav-label">Сегодня</span><span class="nav-count" data-count="today">0</span></button>
       <button class="nav-item" data-view="upcoming"><svg class="icon"><use href="#i-calendar"/></svg><span class="nav-label">Предстоящие</span><span class="nav-count" data-count="upcoming">0</span></button>
       <button class="nav-item" data-view="completed"><svg class="icon"><use href="#i-circle-check"/></svg><span class="nav-label">Выполненные</span><span class="nav-count" data-count="completed">0</span></button>
     </nav>
-    <div class="sidebar-bottom">
-      <div class="little-note"><svg class="icon"><use href="#i-leaf"/></svg><p>Не обязательно успеть всё.<br><strong>Начни с одного дела.</strong></p></div>
-      <p class="made-with">Маленькие шаги. Большое начало.</p>
-    </div>
-  </aside>
+    <span class="storage-status" title="Задачи хранятся только в этом браузере и не отправляются на сервер."><svg class="icon"><use href="#i-shield"/></svg><span>Сохранено на устройстве</span></span>
+  </header>
 
   <div class="workspace">
-    <header class="topbar">
-      <span class="topbar-title">Личный планировщик</span>
-      <span class="storage-status" title="Задачи хранятся только в этом браузере и не отправляются на сервер."><svg class="icon"><use href="#i-shield"/></svg><span>Сохранено на устройстве</span></span>
-    </header>
     <main id="main" tabindex="-1">
       <div class="page-heading">
         <div><p class="eyebrow" id="today-label"></p><h1>Мои задачи<span class="heading-dot">.</span></h1><p class="page-subtitle">Освободи голову. Для важных дел и маленьких радостей.</p></div>
